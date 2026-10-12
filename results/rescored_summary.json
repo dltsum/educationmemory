@@ -1,0 +1,102 @@
+[
+ {
+  "model": "mimo-v2.5",
+  "mode": "linear",
+  "script": "v1",
+  "recall_acc": 1.0,
+  "trap_halluc_rate": 0.0,
+  "n_probes": 12,
+  "n_changed": 0,
+  "file": "mimo-v2.5_linear_0902_015434.jsonl"
+ },
+ {
+  "model": "longcat-2.0",
+  "mode": "linear",
+  "script": "v1",
+  "recall_acc": 1.0,
+  "trap_halluc_rate": 0.0,
+  "n_probes": 12,
+  "n_changed": 0,
+  "file": "longcat-2.0_linear_0902_015434.jsonl"
+ },
+ {
+  "model": "mimo-v2.5",
+  "mode": "psm",
+  "script": "v1",
+  "recall_acc": 1.0,
+  "trap_halluc_rate": 0.0,
+  "n_probes": 12,
+  "n_changed": 0,
+  "file": "mimo-v2.5_psm_0902_020008.jsonl"
+ },
+ {
+  "model": "longcat-2.0",
+  "mode": "psm",
+  "script": "v1",
+  "recall_acc": 0.889,
+  "trap_halluc_rate": 0.0,
+  "n_probes": 12,
+  "n_changed": 1,
+  "file": "longcat-2.0_psm_0902_020456.jsonl"
+ },
+ {
+  "model": "mimo-v2.5",
+  "mode": "linear",
+  "script": "v2",
+  "recall_acc": 1.0,
+  "trap_halluc_rate": 0.25,
+  "n_probes": 14,
+  "n_changed": 0,
+  "file": "mimo-v2.5_linear_v2_0902_021954.jsonl"
+ },
+ {
+  "model": "longcat-2.0",
+  "mode": "linear",
+  "script": "v2",
+  "recall_acc": 1.0,
+  "trap_halluc_rate": 0.0,
+  "n_probes": 14,
+  "n_changed": 0,
+  "file": "longcat-2.0_linear_v2_0902_022254.jsonl"
+ },
+ {
+  "model": "mimo-v2.5",
+  "mode": "psm",
+  "script": "v2",
+  "recall_acc": 0.9,
+  "trap_halluc_rate": 0.0,
+  "n_probes": 14,
+  "n_changed": 0,
+  "file": "mimo-v2.5_psm_v2_0902_022845.jsonl"
+ },
+ {
+  "model": "longcat-2.0",
+  "mode": "psm",
+  "script": "v2",
+  "recall_acc": 0.9,
+  "trap_halluc_rate": 0.0,
+  "n_probes": 14,
+  "n_changed": 0,
+  "file": "longcat-2.0_psm_v2_0902_023210.jsonl"
+ },
+ {
+  "model": "longcat-2.0",
+  "mode": "psm_tail",
+  "script": "v2",
+  "recall_acc": 1.0,
+  "trap_halluc_rate": 0.0,
+  "n_probes": 14,
+  "n_changed": 1,
+  "file": "longcat-2.0_psm_tail_v2_0902_025046.jsonl"
+ },
+ {
+  "model": "mimo-v2.5",
+  "mode": "psm_tail",
+  "script": "v2",
+  "recall_acc": 1.0,
+  "trap_halluc_rate": 0.25,
+  "n_probes": 14,
+  "n_changed": 0,
+  "file": "mimo-v2.5_psm_tail_v2_0902_024931.jsonl"
+ }
+]

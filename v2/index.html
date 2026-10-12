@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>三层记忆辅导台</title>
+<style>
+:root{--bg:#0b0f1a;--card:rgba(255,255,255,.06);--line:rgba(255,255,255,.1);--tx:#e5e9f0;--dim:#8b93a7;--acc:#6ea8fe;--acc2:#a78bfa;--ok:#34d399;--warn:#fbbf24}
+*{box-sizing:border-box;margin:0}
+body{font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;background:radial-gradient(1200px 800px at 80% -10%,#1b2a4a55,transparent),radial-gradient(900px 700px at -10% 110%,#3b1d5a33,transparent),var(--bg);color:var(--tx);height:100vh;display:flex;overflow:hidden}
+/* 左侧对话 */
+#chat-col{flex:1.4;display:flex;flex-direction:column;padding:18px;min-width:420px}
+h1{font-size:17px;font-weight:600;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
+h1 .dot{width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc2));box-shadow:0 0 12px var(--acc)}
+#cfgline{font-size:12px;color:var(--dim);margin:6px 0 12px}
+#cfgline b{color:var(--acc);cursor:pointer;text-decoration:underline dotted}
+#log{flex:1;overflow-y:auto;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;backdrop-filter:blur(8px)}
+.msg{max-width:82%;padding:10px 14px;border-radius:14px;margin:9px 0;line-height:1.65;font-size:14.5px;white-space:pre-wrap;word-break:break-word;animation:pop .25s ease}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+.u{margin-left:auto;background:linear-gradient(135deg,#2b4a7f,#3b3a75);border:1px solid #ffffff22}
+.a{background:#ffffff0d;border:1px solid var(--line)}
+.a.think{color:var(--dim);font-style:italic}
+#bar{display:flex;gap:10px;margin-top:12px}
+#chips{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.chip{font-size:12px;color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer;background:#ffffff08;transition:.2s;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip:hover{color:var(--acc);border-color:var(--acc)}
+.chip.zpd{color:#c4b5fd;border-color:#a78bfa55;background:#a78bfa12}
+.chip.zpd:hover{color:#a78bfa;border-color:#a78bfa}
+.chip.exam{color:#86efac;border-color:#4ade8055;background:#4ade8012}
+.chip.exam:hover{color:#4ade80;border-color:#4ade80}
+.chip.on{border-color:var(--acc);color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
+#attach{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+#attach:empty{display:none}
+.acard{font-size:12px;color:var(--tx);border:1px solid var(--acc);border-radius:8px;padding:6px 26px 6px 10px;background:#6d7ef022;position:relative;white-space:pre-wrap}
+.acard b{color:var(--acc);margin-right:6px}
+.acard .x{position:absolute;right:6px;top:4px;cursor:pointer;color:var(--dim);padding:0 4px}
+.acard .x:hover{color:#f87171}
+.msg .embed{border-left:3px solid var(--acc);background:#ffffff10;border-radius:6px;padding:6px 10px;margin-bottom:6px;font-size:12.5px;color:var(--dim);white-space:pre-wrap}
+#in{flex:1;padding:13px 16px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--tx);font-size:15px;outline:none;transition:.2s}
+#in:focus{border-color:var(--acc);box-shadow:0 0 0 3px #6ea8fe22}
+.btn{padding:12px 20px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;font-size:14px;cursor:pointer;transition:.2s;font-weight:600}
+.btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px #6ea8fe44}
+.btn:disabled{opacity:.5;transform:none;cursor:wait}
+/* 右侧记忆 */
+#mem-col{width:44%;display:flex;flex-direction:column;padding:18px 18px 18px 0;min-width:380px}
+#mem-card{flex:1;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:16px;backdrop-filter:blur(8px);overflow:hidden}
+#mem-head{padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+#stats{display:flex;gap:14px;margin-top:10px}
+.stat{flex:1;background:#ffffff08;border:1px solid var(--line);border-radius:10px;padding:8px 10px;text-align:center}
+.stat b{display:block;font-size:18px;color:var(--acc);transition:.3s}
+.stat span{font-size:11px;color:var(--dim)}
+.stat b.bump{animation:bump .5s}
+@keyframes bump{40%{transform:scale(1.25);color:var(--ok)}}
+#tabs{display:flex;gap:6px;padding:10px 16px 0}
+.tab{padding:7px 14px;border-radius:10px;font-size:13px;cursor:pointer;color:var(--dim);border:1px solid transparent;transition:.2s}
+.tab.on{background:#6ea8fe22;color:var(--acc);border-color:#6ea8fe44}
+#mem-view{flex:1;overflow-y:auto;padding:14px 16px;font-size:13px;line-height:1.75;white-space:pre-wrap;word-break:break-word;transition:opacity .3s}
+#mem-view.flash{animation:flash .8s}
+@keyframes flash{0%{background:#34d39933}100%{background:transparent}}
+#mem-view .empty{color:var(--dim);font-style:italic}
+#actions{display:flex;gap:10px;padding:12px 16px;border-top:1px solid var(--line)}
+.act{flex:1;padding:11px;border-radius:12px;border:1px solid var(--line);background:#ffffff0a;color:var(--tx);cursor:pointer;font-size:14px;transition:.2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.act:hover{border-color:var(--acc2);background:#a78bfa18}
+.act.busy{pointer-events:none;opacity:.6}
+.act .spin{width:14px;height:14px;border:2px solid #fff3;border-top-color:var(--acc);border-radius:50%;animation:rot .8s linear infinite;display:none}
+.act.busy .spin{display:inline-block}
+@keyframes rot{to{transform:rotate(360deg)}}
+.delta{font-size:11px;color:var(--ok);margin-left:4px}
+/* 配置弹窗 */
+#modal{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:9;backdrop-filter:blur(4px)}
+#modal.open{display:flex}
+#dlg{width:640px;max-height:86vh;overflow-y:auto;background:#121828;border:1px solid var(--line);border-radius:18px;padding:22px}
+#dlg h2{font-size:16px;margin-bottom:14px}
+/* 整套试卷弹窗 */
+#exam-m{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:10;backdrop-filter:blur(4px)}
+#exam-dlg{width:min(760px,94vw);max-height:84vh;background:#121828;border:1px solid var(--line);border-radius:18px;display:flex;flex-direction:column;overflow:hidden}
+#exam-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px}
+#exam-title{font-size:14px;line-height:1.5}
+#exam-x{cursor:pointer;color:var(--dim);white-space:nowrap;font-size:13px}
+#exam-x:hover{color:var(--fg)}
+#exam-body{overflow-y:auto;padding:12px 18px 18px}
+.em-note{color:var(--dim);font-size:12px;margin:4px 0 10px;line-height:1.6}
+.em-sec{font-weight:700;color:var(--ac);margin:14px 0 6px;font-size:13px}
+.em-q{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px dashed #ffffff14;font-size:13px;line-height:1.7}
+.em-q span{flex:1}
+.em-add{flex:0 0 auto;background:#1c2b1c;color:#7ee787;border:1px solid #2ea04355;border-radius:8px;padding:3px 10px;font-size:12px;cursor:pointer}
+.em-add:hover{background:#243a24}
+.em-add:disabled{opacity:.55;cursor:default}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;color:var(--dim);margin-bottom:5px}
+.field input,.field textarea,.field select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#ffffff08;color:var(--tx);font-size:13.5px;outline:none;font-family:inherit}
+select,select.act{background:#1a2338!important;color:var(--tx)!important;border:1px solid var(--line);border-radius:10px}
+select option,select optgroup{background:#121828;color:#e5e9f0}
+.field textarea{min-height:170px;font-family:Consolas,monospace;font-size:12.5px;resize:vertical}
+.row{display:flex;gap:10px}.row .field{flex:1}
+.hint{font-size:11.5px;color:var(--dim);margin-top:5px;line-height:1.6}
+::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:#ffffff22;border-radius:4px}
+</style>
+</head>
+<body>
+<div id="chat-col">
+  <h1><span class="dot"></span>三层记忆辅导台 <span style="font-size:12px;color:var(--dim);font-weight:400">保存 → 整理 → 压缩</span></h1>
+  <div id="cfgline">模型: <span id="m-name">未配置</span> · <b onclick="openCfg()">⚙ 配置 API / 上下文方法</b> · <b onclick="resetAll()">↺ 重置</b></div>
+  <div id="log"></div>
+  <div id="attach"></div>
+  <div id="bar">
+    <input id="in" placeholder="以学生身份提问… (Enter 发送)" autofocus>
+    <button class="btn" id="send-btn" onclick="send()">发送</button>
+    <select id="demo-sel" class="act" style="flex:0;min-width:200px;padding:12px 10px" onchange="loadDemoSel()" title="选择演示方案: 自动填入该学生的完整档案">
+      <option value="">📋 演示方案…</option>
+    </select>
+  </div>
+  <div id="chips"></div>
+</div>
+
+<div id="mem-col">
+  <div id="mem-card">
+    <div id="mem-head">
+      <b style="font-size:14px">🧠 记忆储存</b>
+      <select id="style-sel" class="act" style="float:right;padding:5px 8px;font-size:12px;max-width:210px" onchange="setStyle()" title="记忆风格流派: 换整理/压缩提示词与回填格式"></select>
+      <div id="stats">
+        <div class="stat"><b id="s-items">0</b><span>保存条目</span></div>
+        <div class="stat"><b id="s-raw">0</b><span>原始字符</span></div>
+        <div class="stat"><b id="s-org">0</b><span>整理字符</span></div>
+        <div class="stat"><b id="s-cmp">0</b><span>压缩字符</span></div>
+      </div>
+    </div>
+    <div id="tabs">
+      <div class="tab on" data-t="raw" onclick="switchTab('raw')">原始保存</div>
+      <div class="tab" data-t="organized" onclick="switchTab('organized')">整理版</div>
+      <div class="tab" data-t="compressed" onclick="switchTab('compressed')">压缩版</div>
+    </div>
+    <div id="mem-view"><span class="empty">对话后此处实时显示记忆…</span></div>
+    <div id="actions">
+      <button class="act" id="btn-org" onclick="doOp('organize')"><span class="spin"></span>🗂 记忆整理<span class="delta" id="d-org"></span></button>
+      <button class="act" id="btn-cmp" onclick="doOp('compress')"><span class="spin"></span>🗜 记忆压缩<span class="delta" id="d-cmp"></span></button>
+    </div>
+  </div>
+</div>
+
+<div id="modal" onclick="if(event.target===this)closeCfg()">
+  <div id="dlg">
+    <h2>⚙ 配置</h2>
+    <div class="field"><label>API Key</label><input id="c-key" type="password" placeholder="sk-..."></div>
+    <div class="row">
+      <div class="field"><label>Base URL</label><input id="c-base" value="https://opencode.ai/zen/go/v1/chat/completions"></div>
+      <div class="field" style="max-width:210px"><label>模型 (OpenCode 内置)</label>
+        <select id="c-model" onchange="onModelChange()"></select></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>推理变体 (reasoning variant)</label>
+        <select id="c-variant"></select>
+        <div class="hint" id="variant-hint"></div></div>
+      <div class="field" style="max-width:130px"><label>max_tokens</label><input id="c-maxtok" type="number" value="4000" min="256" step="256"></div>
+      <div class="field" style="max-width:130px"><label>temperature</label><input id="c-temp" type="number" placeholder="默认" min="0" max="2" step="0.1"></div>
+    </div>
+    <div class="field"><label>自定义模型 ID (覆盖上方下拉, 留空用内置)</label><input id="c-custom-model" placeholder="如 mimo-v2.5-pro"></div>
+    <div class="field"><label>上下文创建方法 (内置策略, 或下方自定义代码)</label>
+      <div class="row">
+        <select id="c-strategy">
+          <option value="default">智能默认：记忆块 + 最近N条</option>
+          <option value="pinned">首条锚定：记忆块 + 首条档案 + 最近N条</option>
+          <option value="relevant">相关召回：记忆块 + 与当前问题最相关的历史 (按词重叠评分)</option>
+          <option value="memonly">纯记忆：只回填记忆+问题 (检验记忆保真度)</option>
+        </select>
+        <div class="field" style="max-width:150px;margin-bottom:0"><label>附带历史条数 N</label>
+          <input id="c-histn" type="number" value="8" min="0" max="64" step="2"></div>
+      </div>
+      <textarea id="c-builder" spellcheck="false" placeholder="高级: 粘贴自定义 buildContext 代码后, 上方内置策略失效 (留空=用内置)"></textarea>
+      <div class="hint">签名: <code>({memory, history, question, system}) =&gt; messages数组</code>。<br>
+      memory=当前最优记忆文本 · history=[{role,content}]全部历史 · question=本轮提问 · system=人设。</div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="act" style="flex:0;padding:10px 18px" onclick="closeCfg()">取消</button>
+      <button class="btn" onclick="saveCfg()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div id="exam-m" onclick="if(event.target===this)this.style.display='none'">
+  <div id="exam-dlg">
+    <div id="exam-head"><b id="exam-title"></b><span id="exam-x" onclick="$('exam-m').style.display='none'">✕ 关闭</span></div>
+    <div id="exam-body"></div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let history=[], turnNo=0, mem=null, tab='raw', customBuilder=null, sending=false;
+
+// OpenCode 内置模型 (id 为小写连字符命名; 提供商决定可用推理变体)
+const MODELS=[
+ // [label, id, provider]
+ ["Grok 4.6","grok-4.6","openai"],
+ ["GLM-5.3-Flash","glm-5.3-flash","generic"],["GLM-5.3","glm-5.3","generic"],["GLM-5.2","glm-5.2","generic"],["GLM-5.1","glm-5.1","generic"],
+ ["GPT 5.6 Luna","gpt-5.6-luna","openai"],
+ ["Kimi K3","kimi-k3","generic"],["Kimi K2.7 Code","kimi-k2.7-code","generic"],["Kimi K2.6","kimi-k2.6","generic"],
+ ["LongCat-2.0","longcat-2.0","generic"],
+ ["MiMo-V2.5","mimo-v2.5","generic"],["MiMo-V2.5-Pro","mimo-v2.5-pro","generic"],
+ ["MiniMax M3","minimax-m3","generic"],["MiniMax M2.7","minimax-m2.7","generic"],
+ ["Muse Spark 1.3 Contributor (部分地区)","muse-spark-1.3-contributor","generic"],
+ ["Muse Spark 1.2 Contributor (部分地区)","muse-spark-1.2-contributor","generic"],
+ ["Qwen3.8 Max","qwen3.8-max","google"],["Qwen3.8 Flash","qwen3.8-flash","google"],
+ ["Qwen3.7 Max","qwen3.7-max","google"],["Qwen3.7 Plus","qwen3.7-plus","google"],["Qwen3.6 Plus","qwen3.6-plus","google"],
+ ["DeepSeek V4 Pro","deepseek-v4-pro","generic"],["DeepSeek V4 Flash","deepseek-v4-flash","generic"],
+ ["DeepSeek V4 Flash Vision Exp","deepseek-v4-flash-vision-exp","generic"],
+ ["Hy4 preview","hy4-preview","anthropic"],["Hy3","hy3","anthropic"],
+];
+// OpenCode 默认变体: Anthropic high/max; OpenAI none~xhigh; Google low/high; 其他=全量备选
+const VARIANTS={
+ anthropic:["high","max"],
+ openai:["none","minimal","low","medium","high","xhigh"],
+ google:["low","high"],
+ generic:["none","minimal","low","medium","high","xhigh","max"],
+};
+function initModels(){
+  const sel=$('c-model'), groups={};
+  MODELS.forEach(([label,id,p])=>{(groups[p]=groups[p]||[]).push(`<option value="${id}">${label}</option>`)});
+  const gname={openai:"OpenAI 系",anthropic:"Anthropic 系",google:"Google 系",generic:"其他/通用"};
+  sel.innerHTML=Object.entries(groups).map(([p,opts])=>`<optgroup label="${gname[p]}">${opts.join("")}</optgroup>`).join("");
+  sel.value="mimo-v2.5"; onModelChange();
+}
+function onModelChange(){
+  const m=MODELS.find(x=>x[1]===$('c-model').value)||["","","generic"];
+  const list=VARIANTS[m[2]]||VARIANTS.generic;
+  $('c-variant').innerHTML=`<option value="">默认(提供商默认预算)</option>`+list.map(v=>`<option value="${v}">${v}</option>`).join("");
+  $('variant-hint').textContent={anthropic:"Anthropic: high=高思考(默认)/max=最大",openai:"OpenAI 系: none无推理~xhigh超高推理",google:"Google 系: low/high Token预算",generic:"该提供商变体因模型而异, 不生效时请留默认"}[m[2]];
+}
+initModels();
+
+function openCfg(){
+  $('modal').classList.add('open');
+  $('c-key').value=CFG.api_key||'';$('c-base').value=CFG.base_url;
+  const builtin=MODELS.some(m=>m[1]===CFG.model);
+  $('c-model').value=builtin?CFG.model:'mimo-v2.5'; onModelChange();
+  $('c-custom-model').value=builtin?'':CFG.model;
+  $('c-variant').value=CFG.variant||'';$('c-maxtok').value=CFG.max_tokens||4000;$('c-temp').value=CFG.temperature||'';
+  $('c-strategy').value=CFG.strategy||'default';$('c-histn').value=CFG.histn||8;
+  $('c-builder').value=customBuilder||'';
+}
+function closeCfg(){$('modal').classList.remove('open')}
+let CFG={api_key:'',base_url:'https://opencode.ai/zen/go/v1/chat/completions',model:'mimo-v2.5',variant:'',max_tokens:'4000',temperature:'',strategy:'default',histn:'8'};
+// 启动时拉取服务端配置 (api_key 已在后端预填)
+(async()=>{try{const c=await (await fetch('/config')).json();CFG={...CFG,...c};$('m-name').textContent=CFG.model;}catch(e){}})();
+async function saveCfg(){
+  CFG={api_key:$('c-key').value.trim()||CFG.api_key,  // 留空则保留服务端已配置的 key
+       base_url:$('c-base').value.trim(),
+       model:$('c-custom-model').value.trim()||$('c-model').value,
+       variant:$('c-variant').value,max_tokens:$('c-maxtok').value||'4000',temperature:$('c-temp').value.trim(),
+       strategy:$('c-strategy').value,histn:$('c-histn').value||'8'};
+  customBuilder=$('c-builder').value.trim()||null;  // 自定义代码存在则接管
+  await fetch('/config',{method:'POST',body:JSON.stringify(CFG)});
+  const sname=$('c-strategy').selectedOptions[0].textContent.split('：')[0];
+  $('m-name').textContent=CFG.model+(CFG.variant?'·'+CFG.variant:'')+' · '+(customBuilder?'自定义上下文':sname);
+  closeCfg();
+}
+// 内置上下文策略
+function _sysMsg(){return {role:'system',content:'你是一位耐心的中小学辅导老师, 讲解适合学生水平, 善用生活化例子。'+(bestMemory()?'\n\n'+bestMemory():'')}}
+function _bigrams(s){const t=s.replace(/[\s，。！？,.!?~～、；;"''（）()…—-]+/g,'');const g=new Set();for(let i=0;i<t.length-1;i++)g.add(t.slice(i,i+2));return g}
+function _relevantHist(n){
+  const qg=_bigrams(lastQuestion);if(!qg.size)return history.slice(-n);
+  const scored=history.map((m,i)=>{let hit=0;for(const g of _bigrams(m.content||''))if(qg.has(g))hit++;return{i,m,hit,recent:i>=history.length-4?1:0}});
+  // 相关度>0 的优先, 近期4条保底, 总量<=n, 保持原顺序
+  const pick=scored.filter(x=>x.hit>0||x.recent).sort((a,b)=>(b.hit+b.recent*2)-(a.hit+a.recent*2)).slice(0,n).sort((a,b)=>a.i-b.i);
+  return pick.map(x=>x.m);
+}
+let lastQuestion='';
+function buildContext(question){
+  if(customBuilder){
+    const fn=new Function('ctx',customBuilder.replace(/^/,'const {memory,history,question,system}=ctx;'));
+    return fn({memory:bestMemory(),history,question,system:'你是一位耐心的中小学辅导老师, 讲解适合学生水平, 善用生活化例子。'});
+  }
+  lastQuestion=question;
+  const n=Math.max(0,parseInt(CFG.histn||'8'));
+  const sys=_sysMsg(), q={role:'user',content:question};
+  switch(CFG.strategy){
+    case 'memonly': return [sys,q];
+    case 'pinned': return [sys,...history.slice(0,2),...history.slice(-n),q];  // 首条(档案轮)锚定
+    case 'relevant': return [sys,..._relevantHist(n),q];
+    default: return [sys,...history.slice(-n),q];
+  }
+}
+function bestMemory(){
+  return (mem && mem.best_block) || '';
+}
+function add(t,c){const d=document.createElement('div');d.className='msg '+c;d.textContent=t;$('log').appendChild(d);$('log').scrollTop=$('log').scrollHeight;return d}
+function bump(id,val){const e=$(id);e.textContent=val;e.classList.remove('bump');void e.offsetWidth;e.classList.add('bump')}
+function renderMem(flashTab){
+  if(!mem) return;
+  bump('s-items',mem.stats.n_items);bump('s-raw',mem.stats.raw_chars);
+  bump('s-org',mem.stats.organized_chars);bump('s-cmp',mem.stats.compressed_chars);
+  const v=$('mem-view');
+  const txt= tab==='raw'? mem.raw_text : tab==='organized'? mem.organized : mem.compressed;
+  v.textContent= txt || '';
+  if(!txt) v.innerHTML='<span class="empty">(暂无内容)</span>';
+  if(flashTab===tab||(flashTab&&tab===flashTab)){v.classList.remove('flash');void v.offsetWidth;v.classList.add('flash')}
+}
+function switchTab(t){tab=t;document.querySelectorAll('.tab').forEach(e=>e.classList.toggle('on',e.dataset.t===t));renderMem()}
+async function send(){
+  if(sending) return;
+  const cards=[...document.querySelectorAll('#attach .acard')];
+  const texts=cards.map(e=>e.dataset.q);
+  const typed=$('in').value.trim();
+  if(!texts.length && !typed) return;
+  if(!CFG.api_key){openCfg();return}
+  const q=[...texts, typed].filter(Boolean).join('\n');  // 附件卡全文 + 自己打的问题 一起发出
+  sending=true;$('send-btn').disabled=true;$('in').value='';
+  // 气泡: 附件卡内嵌展示在上面, 自己打的问题跟在后面
+  const bubble=document.createElement('div'); bubble.className='msg u';
+  texts.forEach(t=>{const em=document.createElement('div');em.className='embed';em.textContent=t;bubble.appendChild(em)});
+  if(typed) bubble.appendChild(document.createTextNode(typed));
+  $('log').appendChild(bubble);$('log').scrollTop=$('log').scrollHeight;
+  document.querySelectorAll('.chip.on').forEach(c=>c.classList.remove('on'));
+  $('attach').innerHTML='';
+  const thinking=add('思考中…','a think');
+  turnNo++;
+  try{
+    const messages=buildContext(q);
+    const r=await fetch('/chat',{method:'POST',body:JSON.stringify({messages,question:q,turn_no:turnNo})});
+    const d=await r.json();
+    thinking.classList.remove('think');thinking.textContent=d.reply||'(空回复)';
+    history.push({role:'user',content:q},{role:'assistant',content:d.reply});
+    mem=d.memory; renderMem('raw');
+    if(d.saved&&d.saved.dropped.length) console.log('本轮过滤:',d.saved.dropped);
+  }catch(e){thinking.textContent='出错了: '+e}
+  sending=false;$('send-btn').disabled=false;$('in').focus();
+}
+async function doOp(op){
+  const btn=$('btn-'+(op==='organize'?'org':'cmp')), delta=$('d-'+(op==='organize'?'org':'cmp'));
+  btn.classList.add('busy');
+  const before= op==='organize'? (mem?.stats.raw_chars||0) : (mem?.stats.organized_chars||0);
+  try{
+    const r=await fetch('/'+op,{method:'POST'}); const d=await r.json();
+    const after= op==='organize'? d.memory.stats.organized_chars : d.memory.stats.compressed_chars;
+    mem=d.memory;
+    const t= op==='organize'?'organized':'compressed';
+    switchTab(t);
+    delta.textContent= d.changed? `(${before}→${after}, ${after<before?'-':''}${Math.abs(100-Math.round(after/Math.max(before,1)*100))}%)` : '(NO-OP)';
+    setTimeout(()=>delta.textContent='',4000);
+  }catch(e){delta.textContent='(失败)'}
+  btn.classList.remove('busy');
+}
+async function resetAll(){await fetch('/reset',{method:'POST'});history=[];turnNo=0;mem=null;$('log').innerHTML='';$('mem-view').innerHTML='<span class="empty">对话后此处实时显示记忆…</span>';['s-items','s-raw','s-org','s-cmp'].forEach(i=>$(i).textContent='0');$('chips').innerHTML='';$('attach').innerHTML='';$('demo-sel').value=''}
+// 演示方案: 从后端载入 5 学生用例 (档案+示例问题)
+let DEMOS=[];
+async function initDemos(){
+  try{
+    const d=await (await fetch('/demos')).json(); DEMOS=d.demos||[];
+    const sel=$('demo-sel');
+    DEMOS.forEach((c,i)=>{const o=document.createElement('option');o.value=i;o.textContent=c.label;sel.appendChild(o)});
+    if(DEMOS.length){sel.value='0';loadDemoSel()}  // 默认选中第一个方案, 胶囊(含绿色真题入口)立刻可见
+  }catch(e){}
+}
+async function loadDemoSel(){
+  const i=$('demo-sel').value; if(i===''){$('chips').innerHTML='';return}
+  const c=DEMOS[i];
+  // ① 档案直接注入对话(不进输入框): 先清空上一轮(等待完成, 避免异步清空抹掉新气泡) → 档案作为首条消息自动发出
+  await clearConv();
+  renderChips(c);
+  injectDossier(c.dossier);
+}
+async function clearConv(){
+  await fetch('/reset',{method:'POST'});
+  history=[];turnNo=0;mem=null;$('log').innerHTML='';$('attach').innerHTML='';
+  ['s-items','s-raw','s-org','s-cmp'].forEach(i=>$(i).textContent='0');
+  $('mem-view').innerHTML='<span class="empty">对话后此处实时显示记忆…</span>';
+}
+// 档案注入: 气泡内嵌展示档案卡, 直接发给 AI, 输入框保持空白
+async function injectDossier(text){
+  if(sending||!CFG.api_key) return;
+  sending=true;$('send-btn').disabled=true;
+  const bubble=document.createElement('div'); bubble.className='msg u';
+  const em=document.createElement('div'); em.className='embed'; em.textContent=text; bubble.appendChild(em);
+  $('log').appendChild(bubble); $('log').scrollTop=$('log').scrollHeight;
+  const thinking=add('思考中…','a think');
+  turnNo++;
+  try{
+    const messages=buildContext(text);
+    const r=await fetch('/chat',{method:'POST',body:JSON.stringify({messages,question:text,turn_no:turnNo})});
+    const d=await r.json();
+    thinking.classList.remove('think'); thinking.textContent=d.reply||'(空回复)';
+    history.push({role:'user',content:text},{role:'assistant',content:d.reply});
+    mem=d.memory; renderMem('raw');
+  }catch(e){thinking.textContent='出错了: '+e}
+  sending=false;$('send-btn').disabled=false;$('in').focus();
+}
+function renderChips(c){
+  $('chips').innerHTML='';
+  const mkChip=(q,cls,tag,title)=>{
+    const el=document.createElement('span'); el.className='chip'+(cls?' '+cls:''); el.textContent=q.slice(0,20)+'…'; el.title=title||q;
+    el.onclick=()=>toggleAttach(el,q,tag);
+    $('chips').appendChild(el);
+  };
+  (c.zpd||[]).forEach(q=>mkChip(q,'zpd','ZPD'));
+  // ② 整套试卷入口(绿色): 打开原卷弹窗, 逐题挂为附件卡
+  if(c.exams&&c.exams.sections){
+    const n=c.exams.sections.reduce((a,s)=>a+s.items.length,0);
+    const el=document.createElement('span'); el.className='chip exam';
+    el.textContent=`📄 整套试卷（${n}题）`; el.title='来源: '+c.exams.src+'\n'+((c.exams&&c.exams.note)||'');
+    el.onclick=()=>openExam(c.exams);
+    $('chips').appendChild(el);
+  }
+  c.questions.slice(0,4).forEach(q=>mkChip(q,'','示例'));
+}
+// 整套试卷弹窗
+function openExam(ex){
+  const m=$('exam-m'); const box=$('exam-body'); box.innerHTML='';
+  $('exam-title').textContent='📄 '+ex.src;
+  if(ex.note){const nt=document.createElement('div');nt.className='em-note';nt.textContent=ex.note;box.appendChild(nt)}
+  ex.sections.forEach(sec=>{
+    const h=document.createElement('div');h.className='em-sec';h.textContent=sec.name;box.appendChild(h);
+    sec.items.forEach(it=>{
+      const row=document.createElement('div');row.className='em-q';
+      const t=document.createElement('span');t.textContent=`${it.n}. ${it.q}`;row.appendChild(t);
+      const b=document.createElement('button');b.className='em-add';b.textContent='＋挂上';
+      b.onclick=()=>{addAttach(`【${ex.src}·第${it.n}题】${it.q}`,'真题');b.textContent='已挂 ✓';b.disabled=true};
+      row.appendChild(b);box.appendChild(row);
+    });
+  });
+  m.style.display='flex';
+}
+// 附件卡增删: 再点胶囊或点卡片 ✕ 取消
+function toggleAttach(chip,q,tag){
+  if(chip.classList.contains('on')){
+    chip.classList.remove('on');
+    const c=$('attach').querySelector(`[data-k="${chip.dataset.k}"]`); c&&c.remove();
+    return;
+  }
+  chip.classList.add('on');
+  if(!chip.dataset.k) chip.dataset.k=Math.random().toString(36).slice(2);
+  chip.dataset.cardId=addAttach(q,tag,chip.dataset.k);
+}
+function addAttach(q,tag,k){
+  k=k||Math.random().toString(36).slice(2);
+  const card=document.createElement('div'); card.className='acard'; card.dataset.k=k; card.dataset.q=q;
+  const b=document.createElement('b'); b.textContent=tag; card.appendChild(b);
+  card.appendChild(document.createTextNode(q.length>120?q.slice(0,120)+'…':q));
+  const x=document.createElement('span'); x.className='x'; x.textContent='✕';
+  x.onclick=()=>{card.remove();const ch=document.querySelector(`.chip[data-k="${k}"]`);ch&&ch.classList.remove('on')};
+  card.appendChild(x);
+  $('attach').appendChild(card);
+  return k;
+}
+// 记忆风格: 从 /memory 快照初始化, 切换即 POST /config
+async function initStyles(){
+  try{
+    const m=await (await fetch('/memory')).json(); mem=m;
+    const sel=$('style-sel');
+    (m.styles||[]).forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o)});
+    sel.value=m.style||'';
+    renderMem();
+  }catch(e){}
+}
+async function setStyle(){
+  await fetch('/config',{method:'POST',body:JSON.stringify({style:$('style-sel').value})});
+  mem=await (await fetch('/memory')).json(); renderMem();
+}
+initStyles();
+initDemos();
+$('in').addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+</script>
+</body>
+</html>

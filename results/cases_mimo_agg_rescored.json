@@ -1,0 +1,23 @@
+{
+ "note": "离线复评(修正评分器后); S2 compressed graph_prereq 因jsonl截断按人工审计记0",
+ "agg": {
+  "raw": {
+   "recall": 1.0,
+   "graph_reason": 1.0,
+   "stats_reason": 1.0,
+   "trap": 1.0
+  },
+  "organized": {
+   "recall": 1.0,
+   "graph_reason": 0.9,
+   "stats_reason": 1.0,
+   "trap": 1.0
+  },
+  "compressed": {
+   "recall": 0.933,
+   "graph_reason": 0.85,
+   "stats_reason": 0.9,
+   "trap": 1.0
+  }
+ }
+}

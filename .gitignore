@@ -1,0 +1,20 @@
+# 本地密钥 (真实 API key 放这里, 绝不上传)
+config.local.json
+**/config.local.json
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Electron 依赖 (npm install 本地重装)
+node_modules/
+
+# 运行产物
+logs/
+*.log
+results/*.jsonl
+
+# 系统
+.DS_Store
+Thumbs.db

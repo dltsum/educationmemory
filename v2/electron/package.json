@@ -1,0 +1,12 @@
+{
+  "name": "structured-memory-tutor",
+  "version": "2.0.0",
+  "description": "三层记忆辅导台 · Electron 桌面客户端",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^33.0.0"
+  }
+}
